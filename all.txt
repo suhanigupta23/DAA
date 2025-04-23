@@ -267,6 +267,7 @@ int main_tsp() {
 
 /*============================= N-QUEEN PROBLEM =============================*/
 
+
 // nqueen_header.h
 #ifndef NQUEEN_H
 #define NQUEEN_H
@@ -286,4 +287,30 @@ bool isSafe(const std::vector<std::vector<int>>& board, int row, int col) {
 
 bool solveNQueens(std::vector<std::vector<int>>& board, int row) {
     if (row == board.size()) return true;
-    for (int col = 
+    for (int col = 0; col < board.size(); col++) {
+        if (isSafe(board, row, col)) {
+            board[row][col] = 1;
+            if (solveNQueens(board, row + 1)) return true;
+            board[row][col] = 0;
+        }
+    }
+    return false;
+}
+
+void printBoard(const std::vector<std::vector<int>>& board) {
+    for (const auto& row : board) {
+        for (int cell : row) std::cout << (cell ? "Q" : ".") << " ";
+        std::cout << std::endl;
+    }
+}
+
+// nqueen_driver.cpp
+#include <iostream>
+#include "nqueen_header.h"
+int main_nqueen() {
+    int N = 4;
+    std::vector<std::vector<int>> board(N, std::vector<int>(N, 0));
+    if (solveNQueens(board, 0)) printBoard(board);
+    else std::cout << "Solution does not exist\n";
+    return 0;
+}
