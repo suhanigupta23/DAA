@@ -1,0 +1,130 @@
+<<<------------ dfs undirected cycle detection------>>>>>
+// header.h
+#ifndef HEADER_H
+#define HEADER_H
+
+#include <vector>
+
+// Graph class declaration
+class Graph {
+private:
+    int V;  // Number of vertices
+    std::vector<std::vector<int>> adj;  // Adjacency list
+
+public:
+    // Constructor to initialize the graph with V vertices
+    Graph(int vertices);
+    // Method to add an edge between two vertices
+    void addEdge(int u, int v);
+    // Method to get neighbors of a vertex
+    std::vector<int> getNeighbors(int u) const;
+    // Getter for number of vertices
+    int getVertices() const;
+};
+
+// DFS-based cycle detection class declaration
+class DFSCycleDetection {
+public:
+    static bool hasCycle(const Graph& graph);  // Method to detect cycle using DFS
+private:
+    static bool detectCycle(const Graph& graph, int vertex, std::vector<bool>& visited, int parent);
+};
+
+#endif
+
+
+
+
+
+// driver.cpp
+#include "header.h"
+
+// Graph class implementation
+Graph::Graph(int vertices) {
+    V = vertices;
+    adj.resize(vertices);
+}
+
+void Graph::addEdge(int u, int v) {
+    adj[u].push_back(v);
+    adj[v].push_back(u);  // Undirected graph
+}
+
+std::vector<int> Graph::getNeighbors(int u) const {
+    return adj[u];
+}
+
+int Graph::getVertices() const {
+    return V;
+}
+
+// DFSCycleDetection class implementation
+bool DFSCycleDetection::detectCycle(const Graph& graph, int vertex, std::vector<bool>& visited, int parent) {
+    visited[vertex] = true;
+
+    // Iterate through each neighbor of the current vertex
+    for (int neighbor : graph.getNeighbors(vertex)) {
+        if (!visited[neighbor]) {
+            // Recursively call for unvisited neighbors
+            if (detectCycle(graph, neighbor, visited, vertex)) {
+                return true;
+            }
+        } else if (neighbor != parent) {
+            // If a neighbor is visited and is not the parent, we found a cycle
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool DFSCycleDetection::hasCycle(const Graph& graph) {
+    std::vector<bool> visited(graph.getVertices(), false);
+
+    // Start DFS from every unvisited vertex
+    for (int i = 0; i < graph.getVertices(); ++i) {
+        if (!visited[i]) {
+            // If cycle is detected, return true
+            if (detectCycle(graph, i, visited, -1)) {
+                return true;
+            }
+        }
+    }
+
+    return false;  // No cycle detected
+}
+
+
+
+
+
+// main.cpp
+#include <iostream>
+#include "header.h"
+
+int main() {
+    // Create a graph with 5 vertices
+    Graph g(5);
+
+    // Add edges to the graph
+    g.addEdge(0, 1);
+    g.addEdge(1, 2);
+    g.addEdge(2, 3);
+    g.addEdge(3, 4);
+    g.addEdge(4, 0);  // This creates a cycle (0-1-2-3-4-0)
+
+    // Detect cycle using DFS
+    if (DFSCycleDetection::hasCycle(g)) {
+        std::cout << "Cycle detected using DFS\n";
+    } else {
+        std::cout << "No cycle detected using DFS\n";
+    }
+
+    return 0;
+}
+
+
+
+
+
+

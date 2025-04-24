@@ -1,0 +1,178 @@
+header.h(huffman coding)
+
+#ifndef HEADER_H
+#define HEADER_H
+
+#include <iostream>
+#include <fstream>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include <bitset>
+
+using namespace std;
+
+// Struct to represent a node in the Huffman tree
+struct Node {
+    char data;
+    int frequency;
+    Node *left, *right;
+
+    Node(char data, int frequency) {
+        left = right = nullptr;
+        this->data = data;
+        this->frequency = frequency;
+    }
+};
+
+// Comparison class for the priority queue
+struct Compare {
+    bool operator()(Node* left, Node* right) {
+        return left->frequency > right->frequency;
+    }
+};
+
+class HuffmanCoding {
+public:
+    void buildHuffmanTree(const string &input);
+    void generateCodes(Node* root, const string &str);
+    void encode(const string &input);
+    void decode(const string &encodedText);
+    void printCodes();
+    string getEncodedText() const;
+
+private:
+    Node* root;
+    unordered_map<char, string> huffmanCode;
+    unordered_map<char, int> frequencyMap;
+    string encodedText;
+};
+
+#endif
+
+###############
+main.cpp
+#include "header.h"
+
+int main() {
+    HuffmanCoding huffman;
+
+    // Take input text for encoding
+    string input;
+    cout << "Enter the text to encode: ";
+    getline(cin, input);
+
+    // Build Huffman Tree and encode the input text
+    huffman.buildHuffmanTree(input);
+    huffman.encode(input);
+    
+    // Display the Huffman codes for each character
+    cout << "Huffman Codes: \n";
+    huffman.printCodes();
+    
+    // Display the encoded text
+    cout << "\nEncoded Text: " << huffman.getEncodedText() << endl;
+
+    // Decode the encoded text
+    cout << "\nDecoded Text: ";
+    huffman.decode(huffman.getEncodedText());
+    cout << endl;
+
+    return 0;
+}
+
+###################
+#include "header.h"
+
+// Function to build the frequency map from the input text
+void HuffmanCoding::buildHuffmanTree(const string &input) {
+    // Create a frequency map
+    for (char c : input) {
+        frequencyMap[c]++;
+    }
+
+    // Create a priority queue (min-heap)
+    priority_queue<Node*, vector<Node*>, Compare> minHeap;
+
+    // Create a node for each character and add it to the heap
+    for (auto entry : frequencyMap) {
+        minHeap.push(new Node(entry.first, entry.second));
+    }
+
+    // Build the Huffman Tree
+    while (minHeap.size() != 1) {
+        Node* left = minHeap.top();
+        minHeap.pop();
+        Node* right = minHeap.top();
+        minHeap.pop();
+
+        Node* newNode = new Node('$', left->frequency + right->frequency);
+        newNode->left = left;
+        newNode->right = right;
+        minHeap.push(newNode);
+    }
+
+    // The remaining node is the root of the Huffman Tree
+    root = minHeap.top();
+}
+
+// Function to generate Huffman codes from the Huffman tree
+void HuffmanCoding::generateCodes(Node* root, const string &str) {
+    if (!root) return;
+
+    // If the node is a leaf, add the code to the map
+    if (!root->left && !root->right) {
+        huffmanCode[root->data] = str;
+    }
+
+    // Traverse the left and right subtrees
+    generateCodes(root->left, str + "0");
+    generateCodes(root->right, str + "1");
+}
+
+// Function to encode the input text using the generated Huffman codes
+void HuffmanCoding::encode(const string &input) {
+    // Generate the Huffman codes for the characters in the tree
+    generateCodes(root, "");
+
+    // Encode the input text
+    encodedText = "";
+    for (char c : input) {
+        encodedText += huffmanCode[c];
+    }
+}
+
+// Function to decode the encoded text back to the original text
+void HuffmanCoding::decode(const string &encodedText) {
+    Node* currentNode = root;
+    for (size_t i = 0; i < encodedText.size(); ++i) {
+        // Traverse the tree based on the bits in the encoded text
+        if (encodedText[i] == '0') {
+            currentNode = currentNode->left;
+        } else {
+            currentNode = currentNode->right;
+        }
+
+        // If it's a leaf node, print the character and reset
+        if (!currentNode->left && !currentNode->right) {
+            cout << currentNode->data;
+            currentNode = root;
+        }
+    }
+}
+
+// Function to print the Huffman codes
+void HuffmanCoding::printCodes() {
+    for (auto entry : huffmanCode) {
+        cout << entry.first << ": " << entry.second << endl;
+    }
+}
+
+// Getter function to return the encoded text
+string HuffmanCoding::getEncodedText() const {
+    return encodedText;
+}
+
+
+
+

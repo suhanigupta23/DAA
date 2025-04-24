@@ -1,0 +1,126 @@
+<<<<----------- bfs cuycle detection------------>>>>
+// header.h
+#ifndef HEADER_H
+#define HEADER_H
+
+#include <vector>
+#include <queue>
+
+// Graph class declaration
+class Graph {
+private:
+    int V;  // Number of vertices
+    std::vector<std::vector<int>> adj;  // Adjacency list
+
+public:
+    // Constructor to initialize the graph with V vertices
+    Graph(int vertices);
+    // Method to add an edge between two vertices
+    void addEdge(int u, int v);
+    // Method to get neighbors of a vertex
+    std::vector<int> getNeighbors(int u) const;
+    // Getter for number of vertices
+    int getVertices() const;
+};
+
+// BFS-based cycle detection class declaration
+class BFSCycleDetection {
+public:
+    static bool hasCycle(const Graph& graph);  // Method to detect cycle using BFS
+};
+
+#endif
+
+
+
+
+// driver.cpp
+#include "header.h"
+
+// Graph class implementation
+Graph::Graph(int vertices) {
+    V = vertices;
+    adj.resize(vertices);
+}
+
+void Graph::addEdge(int u, int v) {
+    adj[u].push_back(v);
+    adj[v].push_back(u);  // Undirected graph
+}
+
+std::vector<int> Graph::getNeighbors(int u) const {
+    return adj[u];
+}
+
+int Graph::getVertices() const {
+    return V;
+}
+
+// BFSCycleDetection class implementation
+bool BFSCycleDetection::hasCycle(const Graph& graph) {
+    std::vector<bool> visited(graph.getVertices(), false);
+
+    // Iterate through each vertex of the graph
+    for (int start = 0; start < graph.getVertices(); ++start) {
+        if (!visited[start]) {
+            // Queue holds pairs of (vertex, parent)
+            std::queue<std::pair<int, int>> q;
+            q.push({start, -1});
+            visited[start] = true;
+
+            while (!q.empty()) {
+                auto [vertex, parent] = q.front();
+                q.pop();
+
+                // Iterate through each neighbor of the current vertex
+                for (int neighbor : graph.getNeighbors(vertex)) {
+                    if (!visited[neighbor]) {
+                        visited[neighbor] = true;
+                        q.push({neighbor, vertex});
+                    } else if (neighbor != parent) {
+                        // If a neighbor is visited and is not the parent, we found a cycle
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;  // No cycle detected
+  
+}
+
+
+
+
+
+
+
+
+
+
+// main.cpp
+#include <iostream>
+#include "header.h"
+
+int main() {
+    // Create a graph with 5 vertices
+    Graph g(5);
+
+    // Add edges to the graph
+    g.addEdge(0, 1);
+    g.addEdge(1, 2);
+    g.addEdge(2, 3);
+    g.addEdge(3, 4);
+    g.addEdge(4, 0);  // This creates a cycle (0-1-2-3-4-0)
+
+    // Detect cycle using BFS
+    if (BFSCycleDetection::hasCycle(g)) {
+        std::cout << "Cycle detected using BFS\n";
+    } else {
+        std::cout << "No cycle detected using BFS\n";
+    }
+
+    return 0;
+}
+

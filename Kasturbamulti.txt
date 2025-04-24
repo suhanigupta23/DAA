@@ -1,0 +1,134 @@
+﻿// header.h
+#ifndef HEADER_H
+#define HEADER_H
+
+
+#include <string>
+
+
+std::string addStrings(const std::string &a, const std::string &b);
+std::string subtractStrings(const std::string &a, const std::string &b);
+std::string karatsuba(const std::string &x, const std::string &y);
+
+
+#endif // HEADER_H
+
+
+
+
+
+
+// driver.cpp
+#include "header.h"
+#include <algorithm>
+
+
+int multiplySingle(char a, char b) {
+    return (a - '0') * (b - '0');
+}
+
+
+std::string addStrings(const std::string &a, const std::string &b) {
+    std::string result;
+    int carry = 0, sum = 0;
+    int i = a.size() - 1, j = b.size() - 1;
+
+
+    while (i >= 0 || j >= 0 || carry) {
+        sum = carry;
+        if (i >= 0) sum += a[i--] - '0';
+        if (j >= 0) sum += b[j--] - '0';
+        carry = sum / 10;
+        result.push_back((sum % 10) + '0');
+    }
+
+
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+
+std::string subtractStrings(const std::string &a, const std::string &b) {
+    std::string result;
+    int borrow = 0, diff = 0;
+    int i = a.size() - 1, j = b.size() - 1;
+
+
+    while (i >= 0) {
+        diff = (a[i] - '0') - borrow;
+        if (j >= 0) diff -= (b[j--] - '0');
+        if (diff < 0) {
+            diff += 10;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        result.push_back(diff + '0');
+        i--;
+    }
+
+
+    while (result.length() > 1 && result.back() == '0') result.pop_back();
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+
+std::string karatsuba(const std::string &x, const std::string &y) {
+    int n = std::max(x.size(), y.size());
+    if (n == 1)
+        return std::to_string(multiplySingle(x[0], y[0]));
+
+
+    std::string a = x, b = y;
+    while (a.length() < n) a = "0" + a;
+    while (b.length() < n) b = "0" + b;
+    if (n % 2 != 0) {
+        a = "0" + a;
+        b = "0" + b;
+        n++;
+    }
+
+
+    int half = n / 2;
+
+
+    std::string a1 = a.substr(0, half);
+    std::string a0 = a.substr(half);
+    std::string b1 = b.substr(0, half);
+    std::string b0 = b.substr(half);
+
+
+    std::string p1 = karatsuba(a1, b1);
+    std::string p2 = karatsuba(a0, b0);
+    std::string p3 = karatsuba(addStrings(a1, a0), addStrings(b1, b0));
+
+
+    std::string mid = subtractStrings(subtractStrings(p3, p1), p2);
+
+
+    p1 += std::string(2 * half, '0');
+    mid += std::string(half, '0');
+
+
+    return addStrings(addStrings(p1, mid), p2);
+}
+
+
+
+
+
+
+// main.cpp
+#include <iostream>
+#include "header.h"
+
+
+int main() {
+    std::string num1 = "123456789";
+    std::string num2 = "987654321";
+
+
+    std::cout << "Product: " << karatsuba(num1, num2) << std::endl;
+    return 0;
+}
